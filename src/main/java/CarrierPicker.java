@@ -27,7 +27,7 @@ public class CarrierPicker {
         try {
             Map<String, Object> ruleMap = objectMapper.readValue(ruleJson, typeRef);
             System.out.println("");
-            System.out.println("readCarrierRule: new rule " + ruleMap);
+            System.out.println(">>>readCarrierRule: new rule " + ruleMap);
             //add the map to a list
             rules.add(ruleMap);
             System.out.println("collection is now " + rules);
@@ -39,35 +39,90 @@ public class CarrierPicker {
 
     public String pickCarrier(String messageJson) {
         try {
+
+            //deserialise the message JSON
             Map<String, Object> messageMap = objectMapper.readValue(messageJson, typeRef);
             System.out.println("");
-            System.out.println("pickCarrier: recvd this message " + messageMap);
-            //Parse out the carrier value from the object
-            String destinationAddressString = String.valueOf(messageMap.get("destinationAddress"));
-            System.out.println("destinationAddressString is " + destinationAddressString);
-            String messageString = (String) messageMap.get("message");
-            System.out.println("messageString is " + messageString);
+            System.out.println(">>>pickCarrier: recvd this message " + messageMap);
 
-            // If every field in the carrier rule is contained within a field of the message
-            // return a JSON object with carrier set to that carrier.
+            //for each rule in the rule collecton:
             for (Map<String, Object> ruleMap : rules) {
-                System.out.println("matching against ruleMap " + ruleMap);
-                if (destinationAddressString.contains(String.valueOf(ruleMap.get("destinationAddress")))) {
-                    System.out.println("ruleMap.containsKey(\"message\")  " + ruleMap.containsKey("message"));
-                    if ( ruleMap.containsKey("message")) {
-                        if (messageString.contains((String) ruleMap.get("message"))) {
-                            System.out.println("messageString.contains((String) ruleMap.get(\"message\")  " + messageString.contains((String) ruleMap.get("message")));
-                            return objectMapper.writeValueAsString(ruleMap);
+
+                String ruleKey;
+                Object ruleValue;
+                Object messageValue;
+                int ruleMisatchCount = 0;
+
+                //for each key in the rule:
+                for (Map.Entry<String, Object> entry : ruleMap.entrySet()) {
+                    ruleKey = (String) entry.getKey();
+                    ruleValue = (Object) entry.getValue();
+
+
+                    //if rule key is not carrier key
+                    if (ruleKey.compareTo("carrier") != 0 ) { //then
+
+                        //if message does not contain the rule key
+                        messageValue = messageMap.get((Object) ruleKey);
+                        if (messageValue == null) { //then
+                            //goto next rule
+                            break;
                         }
-                    } else{
-                        return objectMapper.writeValueAsString(ruleMap);
-                    }
-                }
-            }
+                        else  //the message does contain the rule key
+                        {
+                            String messageKey = new String((String) ruleKey);
+
+                            // is rule dest address a substring of message dest address?
+                            if (messageKey.compareTo("destinationAddress")==0) {
+                                String ruleDestinationAddressString = String.valueOf(ruleMap.get("destinationAddress"));
+                                String messageDestinationAddressString = String.valueOf(messageMap.get("destinationAddress"));
+                                System.out.println("ruleDestinationAddressString is " + ruleDestinationAddressString);
+                                System.out.println("messageDestinationAddressString is " + messageDestinationAddressString);
+
+                                //if message destination address does not contain rule destination address
+                                System.out.println("messageDestinationAddressString.contains(ruleDestinationAddressString)  "
+                                        + messageDestinationAddressString.contains(ruleDestinationAddressString));
+                                if (messageDestinationAddressString.contains(ruleDestinationAddressString)==false) { //then
+                                    ruleMisatchCount++;
+                                    break; //goto next rule
+                                }
+                            }
+
+                            // is rule message a substring of message message?
+                            if (messageKey.compareTo("message")==0) {
+                                String messageString = (String) messageMap.get("message");
+                                System.out.println("messageString is " + messageString);
+
+                                //if message value does not contain rule value
+                                if (messageString.contains((String) ruleMap.get(ruleKey))== false) { //then
+                                    System.out.println("messageString.contains((String) ruleMap.get(ruleKey)  "
+                                            + messageString.contains((String) ruleMap.get(ruleKey)));
+
+                                    //goto next rule
+                                    ruleMisatchCount++;
+                                    break; //goto next rule
+
+                                } //if message value does not contain rule value
+                            } // is rule message a substring of message message?
+
+
+                        } //the message does contain the rule key
+                    } //if rule key is not carrier key
+                } //end for each key
+
+                // return rule if it has no mismatches
+                if (ruleMisatchCount == 0) {
+                    System.out.println(">return  " + objectMapper.writeValueAsString(ruleMap));
+                    return objectMapper.writeValueAsString(ruleMap);
+                } //return the rule as it matches
+            }//for each rule...
         }
+
         catch (IOException e) {
             e.printStackTrace();
         }
+
+        System.out.println(">return UNKNOWN_RULE");
         return UNKNOWN_RULE;
     }
 
