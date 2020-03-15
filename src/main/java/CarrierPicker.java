@@ -44,13 +44,21 @@ public class CarrierPicker {
             Map<String, Object> messageMap = objectMapper.readValue(messageJson, typeRef);
             System.out.println("");
             System.out.println(">>>pickCarrier: recvd this message " + messageMap);
+            Object messageValue;
+
+            // if message doesn't contain a price, then add a deafult price
+            if (messageMap.get("price") == null) { //then
+                messageMap.put((String) "price", (Object) 100.0 );
+            }
+
+            HashMap<String, Object> cheapestMatchedRuleTrackerMap = new HashMap<>();
+            cheapestMatchedRuleTrackerMap.put("price", (double) Double.MAX_VALUE);
 
             //for each rule in the rule collecton:
             for (Map<String, Object> ruleMap : rules) {
 
                 String ruleKey;
                 Object ruleValue;
-                Object messageValue;
                 int ruleMisatchCount = 0;
 
                 //for each key in the rule:
@@ -105,7 +113,21 @@ public class CarrierPicker {
                                 } //if message value does not contain rule value
                             } // is rule message a substring of message message?
 
+                            // track the cheapest rule here
+                            if (messageKey.compareTo("price")==0) {
 
+                                //update the cheapest matched rule tracker
+                                if ((double) ruleMap.get(ruleKey) < (double) cheapestMatchedRuleTrackerMap.get(ruleKey)) { //then
+                                    System.out.println("ruleMap.get(ruleKey) < cheapestMatchedRuleTrackerMap.get(ruleKey)  "
+                                            + ((double) ruleMap.get(ruleKey) < (double) cheapestMatchedRuleTrackerMap.get(ruleKey)));
+
+                                    //update the cheapest rule through a shallow copy
+                                    cheapestMatchedRuleTrackerMap.putAll(ruleMap);
+                                    System.out.println("cheapestMatchedRuleTrackerMap is now  "
+                                            + cheapestMatchedRuleTrackerMap);
+
+                                } //update the cheapest matched rule tracker
+                            } // track the cheapest rule here
                         } //the message does contain the rule key
                     } //if rule key is not carrier key
                 } //end for each key
