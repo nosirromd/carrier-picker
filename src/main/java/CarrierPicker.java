@@ -46,28 +46,32 @@ public class CarrierPicker {
             System.out.println(">>>pickCarrier: recvd this message " + messageMap);
             Object messageValue;
 
-            // if message doesn't contain a price, then add a deafult price
+            // if message doesn't contain a price, then add a default price
             if (messageMap.get("price") == null) { //then
                 messageMap.put((String) "price", (Object) 100.0 );
             }
 
             HashMap<String, Object> cheapestMatchedRuleTrackerMap = new HashMap<>();
             cheapestMatchedRuleTrackerMap.put("price", (double) Double.MAX_VALUE);
+            int matchedRuleIndex = -1; //track the index of a matching rule
+            int i = -1; //track which rule in the collection is being processed
+            int ruleMismatchCount = 0;
 
             //for each rule in the rule collecton:
             for (Map<String, Object> ruleMap : rules) {
 
+                i++;
                 String ruleKey;
                 Object ruleValue;
-                int ruleMisatchCount = 0;
+                ruleMismatchCount = 0;
 
                 //for each key in the rule:
                 for (Map.Entry<String, Object> entry : ruleMap.entrySet()) {
+
                     ruleKey = (String) entry.getKey();
                     ruleValue = (Object) entry.getValue();
 
-
-                    //if rule key is not carrier key
+                    // parse all rule keys except the carrier key
                     if (ruleKey.compareTo("carrier") != 0 ) { //then
 
                         //if message does not contain the rule key
@@ -76,7 +80,7 @@ public class CarrierPicker {
                             //goto next rule
                             break;
                         }
-                        else  //the message does contain the rule key
+                        else  // message does contain the rule key
                         {
                             String messageKey = new String((String) ruleKey);
 
@@ -91,10 +95,11 @@ public class CarrierPicker {
                                 System.out.println("messageDestinationAddressString.contains(ruleDestinationAddressString)  "
                                         + messageDestinationAddressString.contains(ruleDestinationAddressString));
                                 if (messageDestinationAddressString.contains(ruleDestinationAddressString)==false) { //then
-                                    ruleMisatchCount++;
+                                    ruleMismatchCount++;
+                                    System.out.println("ruleMismatchCount++ " + ruleMismatchCount);
                                     break; //goto next rule
                                 }
-                            }
+                            }// is rule dest address a substring of message dest address?
 
                             // is rule message a substring of message message?
                             if (messageKey.compareTo("message")==0) {
@@ -107,10 +112,10 @@ public class CarrierPicker {
                                             + messageString.contains((String) ruleMap.get(ruleKey)));
 
                                     //goto next rule
-                                    ruleMisatchCount++;
+                                    ruleMismatchCount++;
+                                    System.out.println("ruleMismatchCount++ " + ruleMismatchCount);
                                     break; //goto next rule
-
-                                } //if message value does not contain rule value
+                                }
                             } // is rule message a substring of message message?
 
                             // track the cheapest rule here
@@ -128,25 +133,45 @@ public class CarrierPicker {
 
                                 } //update the cheapest matched rule tracker
                             } // track the cheapest rule here
-                        } //the message does contain the rule key
-                    } //if rule key is not carrier key
-                } //end for each key
 
-                // return rule if it has no mismatches
-                if (ruleMisatchCount == 0) {
-                    System.out.println(">return  " + objectMapper.writeValueAsString(ruleMap));
-                    return objectMapper.writeValueAsString(ruleMap);
-                } //return the rule as it matches
-            }//for each rule...
+                            System.out.println("//if we get here then all key/value pairs in the rule have been successfully matched");
+                            //if we get here then all key/value pairs in the rule have been successfully matched
+                            matchedRuleIndex = i;
+                            System.out.println("matchedRuleIndex = i " + matchedRuleIndex);
+                        } //the message does contain the rule key
+                    } // parse all keys except the carrier key
+
+                } //for each key in the rule:
+
+            }//for each rule in the rule collection:
+
+            // return cheapest matching rule
+            System.out.println("((double) cheapestMatchedRuleTrackerMap.get(\"price\") < Double.MAX_VALUE)  " + ((double) cheapestMatchedRuleTrackerMap.get("price") < Double.MAX_VALUE));
+            if ((double) cheapestMatchedRuleTrackerMap.get("price") < Double.MAX_VALUE) {
+                System.out.println(">return  " + objectMapper.writeValueAsString(cheapestMatchedRuleTrackerMap));
+                return objectMapper.writeValueAsString(cheapestMatchedRuleTrackerMap);
+            } //return cheapest matching rule
+
+            // return rule if it has no mismatches
+            System.out.println("(matchedRuleIndex > -1)  " + (matchedRuleIndex > -1));
+            if (matchedRuleIndex > -1) {
+                System.out.println(">return  " + objectMapper.writeValueAsString((Object) rules.get(matchedRuleIndex)));
+                return objectMapper.writeValueAsString((Object) rules.get(matchedRuleIndex));
+            } //return the rule as it matches
+            else {
+                System.out.println(">return UNKNOWN_RULE");
+                return UNKNOWN_RULE;
+            }
         }
 
         catch (IOException e) {
             e.printStackTrace();
         }
 
-        System.out.println(">return UNKNOWN_RULE");
         return UNKNOWN_RULE;
+
     }
+
 
 }
 
