@@ -141,7 +141,7 @@ public class CarrierPicker {
                 switch(ruleKey) {
 
                     case "carrier":
-                        System.out.println("carrier");
+                        //System.out.println("carrier");
                         break;
 
                     case "destinationAddress":
@@ -160,12 +160,31 @@ public class CarrierPicker {
 
                         } else {
 
-                            ruleMatches.set(i, false);
+                            //ruleMatches.set(i, false);
                             break nextRule;
                         }
                         break;
 
+                    case "sourceAddress":
+                        String RuleSourceAddressString = String.valueOf(ruleValue);
+                        String messageSourceAddressString = String.valueOf(messageMap.get("sourceAddress"));
 
+                        //if message source address does contain rule source address
+                        if (messageSourceAddressString.contains(RuleSourceAddressString) == true) {
+
+                            //rule field match count array [i]++
+                            ruleFieldMatchCounts.set(i, ruleFieldMatchCounts.get(i) + 1);
+
+                            //rule field length array[i] = rule field length (if rule field length is longer)
+                            if (RuleSourceAddressString.length() > ruleFieldLengths.get(i))
+                                ruleFieldLengths.set(i, RuleSourceAddressString.length());
+
+                        } else {
+
+                            //ruleMatches.set(i, false);
+                            break nextRule;
+                        }
+                        break;
 
                     case "message":
                         String ruleMessageString = String.valueOf(ruleValue);
@@ -183,7 +202,7 @@ public class CarrierPicker {
 
                         } else {
 
-                            ruleMatches.set(i, false);
+                            //ruleMatches.set(i, false);
                             break nextRule;
                         }
                         break;
@@ -213,7 +232,7 @@ public class CarrierPicker {
 
                         } else {
 
-                            ruleMatches.set(i, false);
+                            //ruleMatches.set(i, false);
                             break nextRule;
                         }
                         break;
