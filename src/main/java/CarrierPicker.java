@@ -123,11 +123,11 @@ public class CarrierPicker {
         System.out.println(">>>pickCarrier: recvd this message " + messageMap);
 
         //create arrays
-        ruleMatches = new ArrayList<Boolean>(rulesList.size());
-        ruleFieldLengths = new ArrayList<Integer>(rulesList.size());
-        ruleFieldMatchCounts = new ArrayList<Integer>(rulesList.size());
-        rulePrices = new ArrayList<Double>(rulesList.size());
-        priceLatencyProducts = new ArrayList<Double>(rulesList.size());
+        ruleMatches = new ArrayList<Boolean>(Collections.nCopies(rulesList.size(), true));
+        ruleFieldLengths = new ArrayList<Integer>(Collections.nCopies(rulesList.size(), 0));
+        ruleFieldMatchCounts = new ArrayList<Integer>(Collections.nCopies(rulesList.size(), 0));
+        rulePrices = new ArrayList<Double>(Collections.nCopies(rulesList.size(), 100.0));
+        priceLatencyProducts = new ArrayList<Double>(Collections.nCopies(rulesList.size(), Double.MAX_VALUE));
 
         //compare each rule with the message:
         nextRule: for (int i = 0; i < rulesList.size(); i++) {
@@ -193,7 +193,7 @@ public class CarrierPicker {
 
                     case "price":
 
-                        //rule price array[i] = rule price (TODO: preload array with default price using .fill())
+                        //rule price array[i] = rule price
                         double rulePrice = (double) ruleValue;
                         rulePrices.set(i, rulePrice);
                         break;
