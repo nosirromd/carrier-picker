@@ -132,9 +132,6 @@ public class CarrierPicker {
         //compare each rule with the message:
         nextRule: for (int i = 0; i < rulesList.size(); i++) {
 
-            //POSIT: the rule matches unless proven not to match
-            ruleMatches.set(i, true);
-
             //compare each rule field with the corresponding message field:
             for (Map.Entry<String, Object> entry : rulesList.get(i).entrySet()) {
 
@@ -236,16 +233,16 @@ public class CarrierPicker {
 
             if (ruleMatches.get(i) == false) {
 
-                ruleFieldLengths.set(i,0);
+                //ruleFieldLengths.set(i,0);
 
                 //set [rule price array][i] to MAXINT
                 rulePrices.set(i, Double.MAX_VALUE);
 
                 //set [price latency array][i] to MAXINT
-                priceLatencyProducts.set(i, Double.MAX_VALUE);
+                //priceLatencyProducts.set(i, Double.MAX_VALUE);
 
                 //set [rule field match count array][i] to zero
-                ruleFieldMatchCounts.set(i, 0);
+                //ruleFieldMatchCounts.set(i, 0);
             }
         }
 
