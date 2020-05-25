@@ -142,66 +142,27 @@ public class CarrierPicker {
             //compare each rule field with the corresponding message field:
             for (Map.Entry<String, Object> entry : rulesList.get(i).entrySet()) {
 
-                String ruleKey = (String) entry.getKey();
-                Object ruleValue = (Object) entry.getValue();
+                String ruleKey =  entry.getKey();
+                Object ruleValue =  entry.getValue();
 
                 switch(ruleKey) {
 
                     case "carrier":
-                        //System.out.println("carrier");
                         break;
 
                     case "destinationAddress":
-                        String RuleDestinationAddressString = String.valueOf(ruleValue);
-                        String messageDestinationAddressString = String.valueOf(messageMap.get("destinationAddress"));
+                    case "sourceAddress":
+                    case "message":
 
                         //if message destination address does contain rule destination address
-                        if (messageDestinationAddressString.contains(RuleDestinationAddressString) == true) {
+                        if ((String.valueOf(messageMap.get(ruleKey)).contains(String.valueOf(ruleValue)))){
 
                             //rule field match count array [i]++
                             ruleFieldMatchCounts.set(i, ruleFieldMatchCounts.get(i) + 1);
 
                             //rule field length array[i] = rule field length (if rule field length is longer)
-                            if (RuleDestinationAddressString.length() > ruleFieldLengths.get(i))
-                                ruleFieldLengths.set(i, RuleDestinationAddressString.length());
-
-                        } else {
-                            ruleMatches.set(i, false);
-                        }
-                        break;
-
-                    case "sourceAddress":
-                        String RuleSourceAddressString = String.valueOf(ruleValue);
-                        String messageSourceAddressString = String.valueOf(messageMap.get("sourceAddress"));
-
-                        //if message source address does contain rule source address
-                        if (messageSourceAddressString.contains(RuleSourceAddressString) == true) {
-
-                            //rule field match count array [i]++
-                            ruleFieldMatchCounts.set(i, ruleFieldMatchCounts.get(i) + 1);
-
-                            //rule field length array[i] = rule field length (if rule field length is longer)
-                            if (RuleSourceAddressString.length() > ruleFieldLengths.get(i))
-                                ruleFieldLengths.set(i, RuleSourceAddressString.length());
-
-                        } else {
-                            ruleMatches.set(i, false);
-                        }
-                        break;
-
-                    case "message":
-                        String ruleMessageString = String.valueOf(ruleValue);
-                        String messageString = (String) messageMap.get("message");
-
-                        //if message field does contain rule message field
-                        if (messageString.contains(ruleMessageString) == true) {
-
-                            //rule field match count array [i]++
-                            ruleFieldMatchCounts.set(i, ruleFieldMatchCounts.get(i) + 1);
-
-                            //rule field length array[i] = rule field length (if rule field length is longer)
-                            if (ruleMessageString.length() > ruleFieldLengths.get(i))
-                                ruleFieldLengths.set(i, ruleMessageString.length());
+                            if (String.valueOf(ruleValue).length() > ruleFieldLengths.get(i))
+                                ruleFieldLengths.set(i, String.valueOf(ruleValue).length());
 
                         } else {
                             ruleMatches.set(i, false);
@@ -256,18 +217,11 @@ public class CarrierPicker {
         //set [rule field length array][i] to zero where [rule matches arraylist][i] = false
         for (int i = 0; i < ruleMatches.size(); i++) {
 
-            if (ruleMatches.get(i) == false) {
-
-                //ruleFieldLengths.set(i,0);
+            if (!ruleMatches.get(i)) {
 
                 //set [rule price array][i] to MAXINT
                 rulePrices.set(i, Double.MAX_VALUE);
 
-                //set [price latency array][i] to MAXINT
-                //priceLatencyProducts.set(i, Double.MAX_VALUE);
-
-                //set [rule field match count array][i] to zero
-                //ruleFieldMatchCounts.set(i, 0);
             }
         }
 
