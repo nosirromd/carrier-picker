@@ -40,13 +40,10 @@ public class CarrierPicker {
 
             Map<String, Object> ruleMap = objectMapper.readValue(ruleJson, typeRef);
 
-            System.out.println();
-            System.out.println(">>>readCarrierRule: new rule " + ruleMap);
+            System.out.println("new rule: " + ruleMap);
 
             //add the map to a list
             rulesList.add(ruleMap);
-
-            System.out.println("collection is now " + rulesList);
 
         }
 
@@ -60,7 +57,10 @@ public class CarrierPicker {
     public String pickCarrier(String messageJson) {
 
         //return UNKNOWN rule if no rules in the rules map
-        if (rulesList.size() == 0) return UNKNOWN_RULE;
+        if (rulesList.size() == 0) {
+            System.out.println("picked empty rules map: " + UNKNOWN_RULE);
+            return UNKNOWN_RULE;
+        }
 
         try {
 
@@ -68,40 +68,45 @@ public class CarrierPicker {
             createMatchedRulesDataset(messageJson);
 
             //return UNKNOWN rule if if no rules are matched
-            if (Collections.indexOfSubList(ruleMatches, Collections.singletonList(true)) == -1) return UNKNOWN_RULE;
+            if (Collections.indexOfSubList(ruleMatches, Collections.singletonList(true)) == -1) {
+                System.out.println("picked no rules matched: " + UNKNOWN_RULE);
+                return UNKNOWN_RULE;
+            }
 
             //serialise and return rule if the matched rules map contains only one rule
             if (Collections.frequency(ruleMatches, true) == 1)  {
                 int i = Collections.indexOfSubList(ruleMatches, Collections.singletonList(true));
+                System.out.println("picked only one rule: " + rulesList.get(i));
                 return objectMapper.writeValueAsString(rulesList.get(i));
             }
 
             //serialise and return rule with the most matching fields if only a single rule exists
             if (Collections.frequency(ruleFieldMatchCounts, matchedMost) == 1) {
                 int i = Collections.indexOfSubList(ruleFieldMatchCounts, Collections.singletonList(matchedMost));
+                System.out.println("picked most matching fields: " + rulesList.get(i));
                 return objectMapper.writeValueAsString(rulesList.get(i));
             }
 
             //serialise and return rule with the most matching characters (i.e. longest field/substring) if only a single rule exists
             if (Collections.frequency(ruleFieldLengths, matchedLongestFieldLength) == 1) {
                 int i = Collections.indexOfSubList(ruleFieldLengths, Collections.singletonList(matchedLongestFieldLength));
-                return objectMapper.writeValueAsString(rulesList.get(i));
-            }
-
-            //serialise and return rule with the cheapest price if only a single rule exists and no rules have a latency field
-            if (Collections.frequency(rulePrices, matchedCheapestPrice) == 1) {
-                int i = Collections.indexOfSubList(rulePrices, Collections.singletonList(matchedCheapestPrice));
+                System.out.println("picked most matching characters: " + rulesList.get(i));
                 return objectMapper.writeValueAsString(rulesList.get(i));
             }
 
             //serialise and return rule with the smallest latency/price product if only a single rule exists
             if (Collections.frequency(priceLatencyProducts, matchedCheapestPriceLatencyProduct) == 1) {
                 int i = Collections.indexOfSubList(priceLatencyProducts, Collections.singletonList(matchedCheapestPriceLatencyProduct));
+                System.out.println("picked smallest latency/price product: " + rulesList.get(i));
                 return objectMapper.writeValueAsString(rulesList.get(i));
             }
 
-            //serialise and return UNKNOWN rule
-            return UNKNOWN_RULE;
+            //serialise and return rule with the cheapest price if only a single rule exists and no rules have a latency field
+            if (Collections.frequency(rulePrices, matchedCheapestPrice) == 1) {
+                int i = Collections.indexOfSubList(rulePrices, Collections.singletonList(matchedCheapestPrice));
+                System.out.println("picked cheapest price: " + rulesList.get(i));
+                return objectMapper.writeValueAsString(rulesList.get(i));
+            }
 
         }
 
@@ -110,6 +115,8 @@ public class CarrierPicker {
 
         }
 
+        //serialise and return UNKNOWN rule
+        System.out.println("picked: " + UNKNOWN_RULE);
         return UNKNOWN_RULE;
 
     }
@@ -119,8 +126,8 @@ public class CarrierPicker {
         //deserialise the message JSON
         Map<String, Object> messageMap = objectMapper.readValue(messageJson, typeRef);
 
-        System.out.println();
-        System.out.println(">>>pickCarrier: recvd this message " + messageMap);
+        //System.out.println();
+        System.out.println("message: " + messageMap);
 
         //create arrays
         ruleMatches = new ArrayList<Boolean>(Collections.nCopies(rulesList.size(), true));
@@ -130,7 +137,7 @@ public class CarrierPicker {
         priceLatencyProducts = new ArrayList<Double>(Collections.nCopies(rulesList.size(), Double.MAX_VALUE));
 
         //compare each rule with the message:
-        nextRule: for (int i = 0; i < rulesList.size(); i++) {
+        for (int i = 0; i < rulesList.size(); i++) {
 
             //compare each rule field with the corresponding message field:
             for (Map.Entry<String, Object> entry : rulesList.get(i).entrySet()) {
@@ -159,9 +166,7 @@ public class CarrierPicker {
                                 ruleFieldLengths.set(i, RuleDestinationAddressString.length());
 
                         } else {
-
-                            //ruleMatches.set(i, false);
-                            break nextRule;
+                            ruleMatches.set(i, false);
                         }
                         break;
 
@@ -180,9 +185,7 @@ public class CarrierPicker {
                                 ruleFieldLengths.set(i, RuleSourceAddressString.length());
 
                         } else {
-
-                            //ruleMatches.set(i, false);
-                            break nextRule;
+                            ruleMatches.set(i, false);
                         }
                         break;
 
@@ -201,9 +204,7 @@ public class CarrierPicker {
                                 ruleFieldLengths.set(i, ruleMessageString.length());
 
                         } else {
-
-                            //ruleMatches.set(i, false);
-                            break nextRule;
+                            ruleMatches.set(i, false);
                         }
                         break;
 
@@ -217,12 +218,19 @@ public class CarrierPicker {
                     case "latency":
 
                         //if message has latency and  price multipliers
-                        double latencyMultiplier = (double) messageMap.get("latencyMultiplier");
-                        double priceMultiplier = (double) messageMap.get("priceMultiplier");
-                        double rulePrice2 = (double) rulesList.get(i).get("price");
+                        double latencyMultiplier = 0.0;
+                        double priceMultiplier = 1.0;
+                        double rulePrice2 = 100.0;
                         double ruleLatency = (double) ruleValue;
 
-                        if (messageMap.get("latencyMultiplier") != null && messageMap.get("priceMultiplier") != null && rulesList.get(i).get("price") != null) {
+                        if (messageMap.get("latencyMultiplier") != null )
+                            latencyMultiplier = (double) messageMap.get("latencyMultiplier");
+
+                        if (messageMap.get("priceMultiplier") != null)
+                            priceMultiplier = (double) messageMap.get("priceMultiplier");
+
+                        if (rulesList.get(i).get("price") != null) {
+                            rulePrice2 = (double) rulesList.get(i).get("price");
 
                             //rule field match count array [i]++
                             ruleFieldMatchCounts.set(i, ruleFieldMatchCounts.get(i) + 1);
@@ -231,9 +239,7 @@ public class CarrierPicker {
                             priceLatencyProducts.set(i,  (priceMultiplier * rulePrice2) + (latencyMultiplier * ruleLatency));
 
                         } else {
-
-                            //ruleMatches.set(i, false);
-                            break nextRule;
+                            ruleMatches.set(i, false);
                         }
                         break;
 
