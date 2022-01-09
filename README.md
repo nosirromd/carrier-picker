@@ -1,7 +1,5 @@
-# OpenMarket Coding Challenge
-
-Thank you for applying to work at OpenMarket! To get an idea how you approach
-coding, we'd like you to work on this coding challenge.
+# My OpenMarket Coding Challenge Response
+Studied Java then worked on Openmarket's coding challenge.
 
 # Getting the code working
 
