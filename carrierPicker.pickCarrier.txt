@@ -1,0 +1,59 @@
+phase test two algorithm
+
+carrierPicker.pickCarrier(message) {
+
+call find matching rules()
+return unknown rule if matching rules is empty
+
+call find the cheapest matched rule()
+return cheapest matched rule if not unknown
+
+call find the most matched rule()
+return most matched rule
+
+}
+
+
+find matching rules() {
+
+for each rule in rules
+   for each key in rule
+      if rule and message values match then
+          key match count++
+
+   if key match count == rule key count - 1 then // name key
+      add rule to matching rule list
+
+}
+
+
+find the cheapest rule() {
+    cheapest cost = first rule cost
+    for each rule in matching rules
+        if rule cost is cheaper than cheapest cost then
+             cheapest cost = rule cost
+             cheapest rule = rule
+             cheapest rule count++
+        endif
+    endfor
+
+    if cheapest rule count > 1 then
+        cheapest rule = unknown
+}
+
+
+find the most matched rule() {
+
+    most match rule = first rule
+    most matched rule count = first rule key count
+
+    for each rule in matching rules
+        if rule key count > most matched rule key count then
+            most matched rule  = rule
+            most matched key count = rule key count
+            most matched rule count++
+    endfor
+
+    if most matched rule count > 1 then
+        most matched rule = unknown
+}

@@ -1,0 +1,128 @@
+phase test two algorithm
+
+public class CarrierPicker {
+
+    private static final String UNKNOWN_RULE = "{\"carrier\" : \"UNKNOWN\", \"destinationAddress\" : 44}";
+    private ObjectMapper objectMapper;
+    // instantiate an anonymous Type Reference class
+    // this is needed to tell the Jackson object mapper what type of Java object to build from the JSON string
+    private TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {};
+    private ArrayList<Map<String, Object>> rules;
+
+    public CarrierPicker() {
+        //instantiate a object mapper from the object mapper class
+        this.objectMapper = new ObjectMapper();
+        rules = new ArrayList<Map<String, Object>>();
+        matching_rules = new ArrayList<Map<String, Object>>();
+    }
+
+    public void readCarrierRule(String ruleJson) {
+        try {
+            Map<String, Object> ruleMap = objectMapper.readValue(ruleJson, typeRef);
+            System.out.println("");
+            System.out.println(">>>readCarrierRule: new rule " + ruleMap);
+            //add the map to a list
+            rules.add(ruleMap);
+            System.out.println("collection is now " + rules);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public String pickCarrier(String messageJson) {
+        try {
+
+            //deserialise the message JSON
+            Map<String, Object> messageMap = objectMapper.readValue(messageJson, typeRef);
+            System.out.println("");
+            System.out.println(">>>pickCarrier: recvd this message " + messageMap);
+            Object messageValue;
+
+            find_matching_rules(messageMap);
+            if (matching_rules.isEmpty()) {
+                 return UNKNOWN_RULE; //return unknown if matching rules is empty
+            }
+
+            find_the_cheapest_rule()
+            if (matching_rules.isEmpty()) {
+                 return UNKNOWN_RULE; //return unknown if matching rules is empty
+            }
+
+most matched rule = find the most matched rule(matching rules)
+return most matched ruel if not null
+
+        }
+
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return UNKNOWN_RULE;
+
+    }//public String pickCarrier(String messageJson)
+
+
+}
+
+
+find matching rules(message, rules) {
+
+for each rule
+   for each rule key
+      if values match then
+          key match count++
+
+   if key match count == rule key count - 1 then
+      add rule to matching rule list
+
+return matching rules
+}
+
+
+
+find the cheapest rule(matching rules) {
+    cheapest cost = first rule cost
+    for each rule
+        if rule cost is cheaper than cheapest cost then
+             cheapest cost = rule cost
+             cheapest rule = rule
+        endif
+    endfor
+
+    for each rule
+        if rule cost == cheapest cost then
+            cheapest rule count++
+    endfor
+
+    if cheapest rule count > 1 then
+        return null
+    else
+        return cheapest rule
+    endif
+}
+
+
+
+
+find the most matched rule(matching rules) {
+
+    most match rule = first rule
+    for each rule
+        if rule key count > most matched rule key count then
+            most matched rule  = rule
+            most matched key count = rule key count - 1
+    endfor
+
+    for each rule
+        if rule key count == most matched key count then
+            most matched rule count++
+    endfor
+
+    if most matched rule count > 1 then
+        return null
+    else
+        return most matched rule
+    endif
+}
